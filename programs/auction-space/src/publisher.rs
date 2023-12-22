@@ -8,7 +8,6 @@ pub fn new_publisher(ctx: Context<NewPublisher>) -> Result<()> {
     publisher.num_auctions = 0;
     publisher.num_successful_auctions = 0;
     // create an empty list of strings
-    publisher.url = "".to_string();
     publisher.bump = ctx.bumps.publisher;
     Ok(())
 }
@@ -18,8 +17,6 @@ pub struct Publisher {
     pub authority: Pubkey,
     pub num_auctions: u64,
     pub num_successful_auctions: u64,
-    // string of length 32
-    pub url: String,
     pub bump: u8,
 }
 

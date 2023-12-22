@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-const MAX_URL_LENGTH: usize = 16;
 use std::mem::size_of;
 
 pub fn new_advertiser(ctx: Context<NewAdvertiser>) -> Result<()> {

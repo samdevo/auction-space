@@ -11,6 +11,9 @@ use auction::*;
 
 declare_id!("APkuWosZy33sLc5mbsPfWzi3VRbC9RTAqyZbspkECd5j");
 
+const MAX_STRING_LENGTH: usize = 16;
+
+
 #[program]
 pub mod auction_space {
     use super::*;
@@ -28,8 +31,8 @@ pub mod auction_space {
         auction::create_auction(ctx, title)
     }
 
-    pub fn activate_auction(ctx: Context<ActivateAuction>, min_price: u64, duration: u64, num_rounds: u64) -> Result<()> {
-        auction::activate_auction(ctx, min_price, duration, num_rounds)
+    pub fn activate_auction(ctx: Context<ActivateAuction>, duration: u64, num_rounds: u64) -> Result<()> {
+        auction::activate_auction(ctx, duration, num_rounds)
     }
 
     pub fn deactivate_auction(ctx: Context<DeactivateAuction>) -> Result<()> {

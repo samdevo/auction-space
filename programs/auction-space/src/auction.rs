@@ -10,7 +10,7 @@ pub fn create_auction(ctx: Context<CreateAuction>, title: String) -> Result<()> 
     let publisher = &mut ctx.accounts.publisher;
     auction.publisher = publisher.key();
     // if title is more than 32 bytes, throw an error
-    if title.len() > 32 {
+    if title.len() > crate::MAX_STRING_LENGTH {
         return err!(AuctionErrors::TitleTooLong);
     }
     auction.title = title;
@@ -60,7 +60,7 @@ pub struct Auction {
     bump: u8,
 }
 
-pub fn activate_auction(ctx: Context<ActivateAuction>, min_price: u64, duration: u64, num_rounds: u64) -> Result<()> {
+pub fn activate_auction(ctx: Context<ActivateAuction>, duration: u64, num_rounds: u64) -> Result<()> {
     let auction = &mut ctx.accounts.auction;
     if auction.active {
         return err!(AuctionErrors::AuctionAlreadyActive);
