@@ -10,7 +10,7 @@ mod auction;
 use auction::*;
 
 mod auction_backout;
-use auction::*;
+use auction_backout::*;
 
 declare_id!("APkuWosZy33sLc5mbsPfWzi3VRbC9RTAqyZbspkECd5j");
 

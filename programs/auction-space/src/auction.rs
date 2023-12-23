@@ -66,6 +66,8 @@ pub struct Auction {
     pub effect_start_time: u64,
     pub effect_end_time: u64,
     pub active: bool,
+    pub completed: bool,
+    pub aborted: bool,
     pub id: u64,
     bump: u8,
 }
@@ -128,6 +130,7 @@ fn check_status(auction: &mut Auction) {
     let clock = Clock::get().unwrap();
     if clock.unix_timestamp.unsigned_abs() > auction.end_time {
         auction.active = false;
+        auction.completed = true;
         // handle end of auction
         auction.winner = auction.highest_bidder;
         msg!("auction ended. winner is {}", auction.winner);
@@ -216,4 +219,5 @@ pub enum AuctionErrors {
     AuctionEndsBeforeStart,
     AuctionEffectBeforeEnd,
     AuctionEffectEndBeforeStart,
+    AuctionNotCompleted,
 }
