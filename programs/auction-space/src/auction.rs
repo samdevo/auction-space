@@ -28,7 +28,7 @@ pub struct CreateAuction<'info> {
         init, 
         payer = authority, 
         space = 32 + size_of::<Auction>(),
-        seeds = [b"auction", authority.key().as_ref(), &publisher.num_auctions.to_le_bytes()],
+        seeds = [b"auction".as_ref(), authority.key().as_ref(), &publisher.num_auctions.to_le_bytes().as_ref()],
         bump
     )]
     pub auction: Account<'info, Auction>,

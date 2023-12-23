@@ -20,6 +20,7 @@ pub mod auction_space {
 
     // initialize a new publisher 
     pub fn new_publisher(ctx: Context<NewPublisher>) -> Result<()> {
+        msg!("creating new publisher");
         publisher::new_publisher(ctx)
     }
 
@@ -38,6 +39,14 @@ pub mod auction_space {
     pub fn deactivate_auction(ctx: Context<DeactivateAuction>) -> Result<()> {
         auction::deactivate_auction(ctx)
     }
+
+    pub fn foo(ctx: Context<HelloWorld>) -> Result<()> {
+        msg!("Hello world hello {}!", ctx.accounts.my_account.key());
+        Ok(())
+    }
 }
 
-
+#[derive(Accounts)]
+pub struct HelloWorld<'info> {
+    pub my_account: Signer<'info>,
+}

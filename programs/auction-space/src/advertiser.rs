@@ -25,8 +25,8 @@ pub struct NewAdvertiser<'info> {
     #[account(
         init, 
         payer = user, 
-        space = 8 + size_of::<Advertiser>(),
-        seeds = [b"advertiser", user.key().as_ref()],
+        space = 24 + size_of::<Advertiser>(),
+        seeds = [b"advertiser".as_ref(), user.key().as_ref()],
         bump
     )]
     pub advertiser: Account<'info, Advertiser>,
