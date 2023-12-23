@@ -7,6 +7,7 @@ use crate::advertiser::Advertiser;
 use solana_program::system_instruction;
 
 
+
 pub fn create_auction(ctx: Context<CreateAuction>, title: String) -> Result<()> {
     let auction = &mut ctx.accounts.auction;
     let publisher = &mut ctx.accounts.publisher;
@@ -55,12 +56,13 @@ pub struct CreateAuction<'info> {
 #[account]
 pub struct Auction {
     pub publisher: Pubkey,
-    pub cur_owner: Pubkey,
+    pub winner: Pubkey,
     pub highest_bid: u64,
     pub highest_bidder: Pubkey,
     pub title: String,
     // timestamp frequency in seconds
-    pub duration: u64,
+    pub start_time: u64,
+    pub end_time: u64,
     pub active: bool,
     pub rounds_left: u64,
     pub id: u64,
@@ -73,12 +75,14 @@ pub fn activate_auction(ctx: Context<ActivateAuction>, duration: u64, num_rounds
         return err!(AuctionErrors::AuctionAlreadyActive);
     }
     auction.active = true;
-    auction.duration = duration;
     if num_rounds == 0 {
         auction.rounds_left = u64::MAX;
     } else {
         auction.rounds_left = num_rounds;
     }
+    let clock = Clock::get()?;
+    auction.start_time = clock.unix_timestamp.unsigned_abs();
+    auction.end_time = auction.start_time + duration;
     Ok(())
 }
 
@@ -105,14 +109,30 @@ pub struct DeactivateAuction<'info> {
     pub auction: Account<'info, Auction>,
 }
 
+// check for the end of the auction, and set the winner
+fn check_status(auction: &mut Auction) {
+    let clock = Clock::get().unwrap();
+    if clock.unix_timestamp.unsigned_abs() > auction.end_time {
+        auction.active = false;
+        // handle end of auction
+        auction.winner = auction.highest_bidder;
+        return;
+    }
+}
+
 
 pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
     let auction = &mut ctx.accounts.auction;
     let advertiser = &mut ctx.accounts.advertiser;
     let user = &ctx.accounts.user;
+    check_status(auction);
     if amount <= auction.highest_bid {
         return err!(AuctionErrors::NotHighestBid);
     }
+    if !auction.active {
+        return err!(AuctionErrors::AuctionNotActive);
+    }
+
     // transfer amount from user to auction in case they win
     let transfer = system_instruction::transfer(
         &user.key(),
@@ -163,8 +183,6 @@ pub struct Bid<'info> {
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
-
-
 
 #[error_code]
 pub enum AuctionErrors {
