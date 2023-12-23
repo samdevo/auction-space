@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { AuctionSpace } from "../target/types/auction_space";
 import { PublicKey } from '@solana/web3.js';
+import { expect } from "chai";
 
 anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -73,12 +74,11 @@ async function createAuction() {
 
   // include numAuctions, and it is set as num_auctions.to_le_bytes()
   // put it in the right format for the seed
-  const numAuctions = publisher.numAuctions.toBuffer();
   const [auctionPDA, _] = PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode('auction'),
-      publisherPDA.toBuffer(),
-      publisher.numAuctions.toBuffer(),
+      publisherWallet.publicKey.toBuffer(),
+      publisher.numAuctions.toArrayLike(Buffer, 'le', 8),
     ],
     program.programId
   )
@@ -92,9 +92,9 @@ async function createAuction() {
   })
   .signers([publisherWallet])
   .rpc();
-  const auction = await program.account.auction.fetch(auctionPDA);
-  console.log("auction", auction);
   
+  const auction = await program.account.auction.fetch(auctionPDA);
+  expect(auction.title.toString()).eq("testAuction");
   return [publisherWallet, publisherPDA, auctionPDA] as [anchor.web3.Keypair, PublicKey, PublicKey]
 
 }

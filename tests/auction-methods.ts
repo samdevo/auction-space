@@ -14,20 +14,20 @@ describe("auction-methods", () => {
 
 
   it("startAuction", async () => {
-    console.log("creating auction")
+    // return;
     const [publisherWallet, publisherPDA, auctionPDA] = await createAuction();
     const auction = await program.account.auction.fetch(auctionPDA);
-    expect(auction.duration).eq(new BN(0));
-    console.log("done creating auction")
+    expect(auction.duration.toNumber()).eq(0);
     const tx = await program.methods.activateAuction(new BN(100), new BN(10)).accounts({
         auction: auctionPDA,
         authority: publisherWallet.publicKey,
         })
         .signers([publisherWallet])
         .rpc();
-    console.log("fetching auction")
     const auctionNew = await program.account.auction.fetch(auctionPDA);
-    expect(auction.duration).eq(new BN(100));
+    expect(auctionNew.duration.toNumber()).eq(100);
+    expect(auctionNew.active.valueOf()).eq(true);
+    // const publisher = await program.account.publisher.fetch(publisherPDA);
 
   })
   

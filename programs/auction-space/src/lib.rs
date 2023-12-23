@@ -44,6 +44,11 @@ pub mod auction_space {
         msg!("Hello world hello {}!", ctx.accounts.my_account.key());
         Ok(())
     }
+
+    pub fn bid(ctx: Context<Bid>, bid_amount: u64) -> Result<()> {
+        auction::bid(ctx, bid_amount)
+    }
+    
 }
 
 #[derive(Accounts)]
