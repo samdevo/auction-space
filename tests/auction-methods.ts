@@ -76,6 +76,32 @@ describe("auction-methods", () => {
     expect(auctionWithBid.highestBid.toNumber()).eq(95000);
     expect(auctionWithBid.highestBidder.toString()).eq(advertiserWallet.publicKey.toString());
 
+    const [newAdvertiserWallet, newAdvertiserPDA] = await newAdvertiser();
+    // bid below previous high bid, so should fail
+    try {
+        const tx2 = await program
+        .methods
+        .bid(new BN(90000))
+        .accounts({
+            auction: auctionPDA,
+            advertiser: newAdvertiserPDA,
+            user: newAdvertiserWallet.publicKey,
+        })
+        .signers([newAdvertiserWallet])
+        .rpc();
+        throw new Error("bid should have failed");
+    } catch (e) {
+        expect(e.error.errorMessage).eq("Not highest bid");
+    }
+    const auctionWithBid2 = await program.account.auction.fetch(auctionPDA);
+    // console.log("auctionWithBid2", auctionWithBid2);
+    // console.log("newHighestBid", auctionWithBid2.highestBid.toString());
+    expect(auctionWithBid2.highestBid.toNumber()).eq(95000);
+    expect(auctionWithBid2.highestBidder.toString()).eq(advertiserWallet.publicKey.toString());
+
+
+
+
   });
   
 });

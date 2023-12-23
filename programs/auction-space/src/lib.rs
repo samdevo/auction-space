@@ -9,6 +9,9 @@ use advertiser::*;
 mod auction;
 use auction::*;
 
+mod auction_backout;
+use auction::*;
+
 declare_id!("APkuWosZy33sLc5mbsPfWzi3VRbC9RTAqyZbspkECd5j");
 
 const MAX_STRING_LENGTH: usize = 16;
@@ -47,6 +50,14 @@ pub mod auction_space {
 
     pub fn bid(ctx: Context<Bid>, bid_amount: u64) -> Result<()> {
         auction::bid(ctx, bid_amount)
+    }
+
+    pub fn publisher_backout(ctx: Context<PublisherBackout>) -> Result<()> {
+        auction_backout::publisher_backout(ctx)
+    }
+
+    pub fn advertiser_backout(ctx: Context<AdvertiserBackout>) -> Result<()> {
+        auction_backout::advertiser_backout(ctx)
     }
 
 }
