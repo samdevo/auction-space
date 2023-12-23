@@ -17,6 +17,7 @@ pub struct Advertiser {
     pub num_bids: u64,
     pub num_auctions_won: u64,
     // string of length 32
+    pub url: String,
     pub bump: u8,
 }
 

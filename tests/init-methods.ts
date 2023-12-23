@@ -62,7 +62,7 @@ async function newAdvertiser() {
   .signers([myWallet])
   .rpc();
   // return my wallet and the advertiserPDA
-  return [myWallet, advertiserPDA];
+  return [myWallet, advertiserPDA] as [anchor.web3.Keypair, PublicKey];
 }
 
 async function createAuction() {

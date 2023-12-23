@@ -32,13 +32,13 @@ pub mod auction_space {
         auction::create_auction(ctx, title)
     }
 
-    pub fn activate_auction(ctx: Context<ActivateAuction>, duration: u64, num_rounds: u64) -> Result<()> {
-        auction::activate_auction(ctx, duration, num_rounds)
+    pub fn activate_auction(ctx: Context<ActivateAuction>, auction_end: u64, effect_start: u64, effect_end: u64) -> Result<()> {
+        auction::activate_auction(ctx, auction_end, effect_start, effect_end)
     }
 
-    pub fn deactivate_auction(ctx: Context<DeactivateAuction>) -> Result<()> {
-        auction::deactivate_auction(ctx)
-    }
+    // pub fn deactivate_auction(ctx: Context<DeactivateAuction>) -> Result<()> {
+    //     auction::deactivate_auction(ctx)
+    // }
 
     pub fn foo(ctx: Context<HelloWorld>) -> Result<()> {
         msg!("Hello world hello {}!", ctx.accounts.my_account.key());
@@ -48,7 +48,7 @@ pub mod auction_space {
     pub fn bid(ctx: Context<Bid>, bid_amount: u64) -> Result<()> {
         auction::bid(ctx, bid_amount)
     }
-    
+
 }
 
 #[derive(Accounts)]

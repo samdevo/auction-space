@@ -63,37 +63,51 @@ pub struct Auction {
     // timestamp frequency in seconds
     pub start_time: u64,
     pub end_time: u64,
+    pub effect_start_time: u64,
+    pub effect_end_time: u64,
     pub active: bool,
-    pub rounds_left: u64,
     pub id: u64,
     bump: u8,
 }
 
-pub fn activate_auction(ctx: Context<ActivateAuction>, duration: u64, num_rounds: u64) -> Result<()> {
+pub fn activate_auction(ctx: Context<ActivateAuction>, auction_end: u64, effect_start: u64, effect_end: u64) -> Result<()> {
     let auction = &mut ctx.accounts.auction;
     if auction.active {
         return err!(AuctionErrors::AuctionAlreadyActive);
     }
     auction.active = true;
-    if num_rounds == 0 {
-        auction.rounds_left = u64::MAX;
-    } else {
-        auction.rounds_left = num_rounds;
-    }
     let clock = Clock::get()?;
-    auction.start_time = clock.unix_timestamp.unsigned_abs();
-    auction.end_time = auction.start_time + duration;
+    msg!("timestamp: {:?}", clock.unix_timestamp.unsigned_abs());
+    msg!("auction_end: {:?}", auction_end);
+    msg!("effect_start: {:?}", effect_start);
+    msg!("effect_end: {:?}", effect_end);
+    let timestamp = clock.unix_timestamp.unsigned_abs();
+
+    if timestamp > auction_end {
+        return err!(AuctionErrors::AuctionEndsBeforeStart);
+    }
+    if auction_end > effect_start {
+        return err!(AuctionErrors::AuctionEffectBeforeEnd);
+    }
+    if effect_start >= effect_end {
+        return err!(AuctionErrors::AuctionEffectEndBeforeStart);
+    }
+    auction.start_time = timestamp;
+    auction.end_time = auction_end;
+    auction.effect_start_time = effect_start;
+    auction.effect_end_time = effect_end;
     Ok(())
 }
 
-pub fn deactivate_auction(ctx: Context<DeactivateAuction>) -> Result<()> {
-    let auction = &mut ctx.accounts.auction;
-    if !auction.active {
-        return err!(AuctionErrors::AuctionNotActive);
-    }
-    auction.rounds_left = 0;
-    Ok(())
-}
+// pub fn deactivate_auction(ctx: Context<DeactivateAuction>) -> Result<()> {
+//     let auction = &mut ctx.accounts.auction;
+//     check_status(auction, &mut ctx.accounts.advertiser);
+//     if !auction.active {
+//         return err!(AuctionErrors::AuctionNotActive);
+//     }
+//     auction.rounds_left = 0;
+//     Ok(())
+// }
 
 #[derive(Accounts)]
 pub struct ActivateAuction<'info> {
@@ -116,6 +130,8 @@ fn check_status(auction: &mut Auction) {
         auction.active = false;
         // handle end of auction
         auction.winner = auction.highest_bidder;
+        msg!("auction ended. winner is {}", auction.winner);
+
         return;
     }
 }
@@ -126,6 +142,7 @@ pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
     let advertiser = &mut ctx.accounts.advertiser;
     let user = &ctx.accounts.user;
     check_status(auction);
+    // TODO if winner, increase auctions won
     if amount <= auction.highest_bid {
         return err!(AuctionErrors::NotHighestBid);
     }
@@ -139,16 +156,18 @@ pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
         &auction.key(),
         amount,
     );
-
-   solana_program::program::invoke_signed(
+    msg!("transferring {} lamports from {} to {}", amount, user.key(), auction.key());
+   solana_program::program::invoke(
         &transfer,
         &[
-            user.to_account_info(),
-            auction.to_account_info(),
-            ctx.accounts.system_program.to_account_info(),
+            user.to_account_info().clone(),
+            auction.to_account_info().clone(),
+            ctx.accounts.system_program.to_account_info().clone(),
         ],
-        &[],
+        // &[&[&user.key().to_bytes()]],
     )?;
+    // **user.to_account_info().try_borrow_mut_lamports()? -= amount;
+    // **auction.to_account_info().try_borrow_mut_lamports()? += amount;
     msg!("bid successful. transferred {} lamports from {} to {}", amount, user.key(), auction.key());
 
     // refund previous highest bidder
@@ -158,13 +177,12 @@ pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
             &auction.highest_bidder,
             auction.highest_bid,
         );
-        solana_program::program::invoke_signed(
+        solana_program::program::invoke(
             &refund,
             &[
                 auction.to_account_info(),
                 ctx.accounts.system_program.to_account_info(),
-            ],
-            &[],
+            ]
         )?;
         msg!("refunded {} lamports to {}", auction.highest_bid, auction.highest_bidder);
     }
@@ -180,6 +198,7 @@ pub struct Bid<'info> {
     pub auction: Account<'info, Auction>,
     #[account(mut)]
     pub advertiser: Account<'info, Advertiser>,
+    #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
@@ -194,4 +213,7 @@ pub enum AuctionErrors {
     AuctionNotActive,
     #[msg("Not highest bid")]
     NotHighestBid,
+    AuctionEndsBeforeStart,
+    AuctionEffectBeforeEnd,
+    AuctionEffectEndBeforeStart,
 }
