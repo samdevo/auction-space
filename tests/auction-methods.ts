@@ -72,7 +72,7 @@ describe("auction-methods", () => {
 
     const advertiserWalletBalanceAfter = await program.provider.connection.getBalance(advertiserWallet.publicKey);
     // console.log("advertiserWalletBalanceAfter", advertiserWalletBalanceAfter)
-    expect(advertiserWalletBalanceAfter).eq(advertiserWalletBalanceBefore - 95000);
+    expect(advertiserWalletBalanceAfter).eq(advertiserWalletBalanceBefore - 95000 * 21/20);
     expect(auctionWithBid.highestBid.toNumber()).eq(95000);
     expect(auctionWithBid.highestBidder.toString()).eq(advertiserWallet.publicKey.toString());
 

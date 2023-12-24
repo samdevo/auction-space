@@ -14,7 +14,7 @@ use auction_backout::*;
 
 declare_id!("APkuWosZy33sLc5mbsPfWzi3VRbC9RTAqyZbspkECd5j");
 
-const MAX_STRING_LENGTH: usize = 16;
+const MAX_STRING_LENGTH: usize = 32;
 
 
 #[program]
@@ -42,6 +42,10 @@ pub mod auction_space {
     // pub fn deactivate_auction(ctx: Context<DeactivateAuction>) -> Result<()> {
     //     auction::deactivate_auction(ctx)
     // }
+
+    pub fn upload_ad(ctx: Context<UploadAd>, url: String) -> Result<()> {
+        auction::upload_ad(ctx, url)
+    }
 
     pub fn foo(ctx: Context<HelloWorld>) -> Result<()> {
         msg!("Hello world hello {}!", ctx.accounts.my_account.key());

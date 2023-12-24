@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
 use std::mem::size_of;
 
+use crate::{auction::{Auction, AuctionErrors}, publisher::Publisher};
+
 pub fn new_advertiser(ctx: Context<NewAdvertiser>) -> Result<()> {
     let advertiser = &mut ctx.accounts.advertiser;
     advertiser.authority = ctx.accounts.user.key();
@@ -35,3 +37,35 @@ pub struct NewAdvertiser<'info> {
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
+
+// pub fn collect_payout(ctx: Context<CollectPayout>) -> Result<()> {
+//     let auction = &mut ctx.accounts.auction;
+//     let advertiser = &mut ctx.accounts.advertiser;
+//     let user = &mut ctx.accounts.user;
+//     let system_program = &mut ctx.accounts.system_program;
+//     let clock = Clock::get()?;
+//     let cur_time = clock.unix_timestamp.unsigned_abs();
+//     if auction.aborted && auction.aborted_by  {
+
+//     }
+//     Ok(())
+// }
+
+// #[derive(Accounts)]
+// pub struct CollectPayout<'info> {
+//     #[account(
+//         constraint = auction.publisher == publisher.key(),
+//         mut
+//     )]
+//     pub auction: Account<'info, Auction>,
+//     #[account(
+//         seeds = [b"advertiser".as_ref(), authority.key().as_ref()],
+//         bump = advertiser.bump,
+//         has_one = authority,
+//         mut
+//     )]
+//     pub advertiser: Account<'info, Advertiser>,
+//     #[account(mut)]
+//     pub user: Signer<'info>,
+//     pub system_program: Program<'info, System>,
+// }
