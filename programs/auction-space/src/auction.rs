@@ -2,7 +2,7 @@ use std::mem::size_of;
 
 use anchor_lang::{prelude::*, solana_program};
 
-use crate::publisher::Publisher;
+use crate::publisher::*;
 use crate::advertiser::Advertiser;
 use solana_program::system_instruction;
 
@@ -65,23 +65,31 @@ pub struct CreateAuction<'info> {
 
 #[account]
 pub struct Auction {
-    pub publisher: Pubkey,
-    pub winner: Pubkey,
-    pub highest_bid: u64,
-    pub highest_bidder: Pubkey,
+    // title of the auction
     pub title: String,
-    // timestamp frequency in seconds
+    // publisher struct and the user that owns the publisher
+    pub publisher: Pubkey, // Publi
+    pub publisher_user: Pubkey, // User
+    // advertiser struct and the user that owns the advertiser
+    pub winning_advertiser: Pubkey, // Advertiser
+    pub winning_user: Pubkey, // User
+    pub winning_bid: u64,
+    // auction start and end time, in Unix seconds
     pub start_time: u64,
     pub end_time: u64,
+    // auction EFFECT start and end time, in Unix seconds
     pub effect_start_time: u64,
     pub effect_end_time: u64,
+    // is the auction (bidding phase) active
     pub active: bool,
+    // is the effect phase completed
     pub completed: bool,
+    // was the auction aborted
     pub aborted: bool,
-    pub aborted_by: Pubkey,
+    // who aborted the auction (Publisher or Advertiser)
+    pub aborted_by_publisher: bool,
     pub aborted_at: u64,
     pub id: u64,
-    pub url: String,
     bump: u8,
 }
 
@@ -147,18 +155,17 @@ fn check_status(auction: &mut Auction) {
         auction.active = false;
         auction.completed = true;
         // handle end of auction
-        auction.winner = auction.highest_bidder;
-        msg!("auction ended. winner is {}", auction.winner);
-
+        msg!("auction ended. winner is {}", auction.winning_user);
         return;
     }
 }
 
 pub fn upload_ad(ctx: Context<UploadAd>, url: String) -> Result<()> {
     let auction = &mut ctx.accounts.auction;
+    let publisher = &mut ctx.accounts.publisher;
     let user = &ctx.accounts.user;
     check_status(auction);
-    if auction.highest_bidder != user.key() {
+    if auction.winning_user != user.key() {
         return err!(AuctionErrors::NotHighestBid);
     }
     if auction.aborted {
@@ -168,7 +175,7 @@ pub fn upload_ad(ctx: Context<UploadAd>, url: String) -> Result<()> {
     if url.len() > crate::MAX_STRING_LENGTH {
         return err!(AuctionErrors::TitleTooLong);
     }
-    auction.url = url;
+    publisher.ad_url = url;
     Ok(())
 }
 
@@ -176,6 +183,8 @@ pub fn upload_ad(ctx: Context<UploadAd>, url: String) -> Result<()> {
 pub struct UploadAd<'info> {
     #[account(mut)]
     pub auction: Account<'info, Auction>,
+    #[account(mut)]
+    pub publisher: Account<'info, Publisher>,
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
@@ -186,7 +195,7 @@ pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
     let user = &ctx.accounts.user;
     check_status(auction);
     // TODO if winner, increase auctions won
-    if amount <= auction.highest_bid {
+    if amount <= auction.winning_bid {
         return err!(AuctionErrors::NotHighestBid);
     }
     if !auction.active {
@@ -214,11 +223,11 @@ pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
     msg!("bid successful. transferred {} lamports from {} to {}", amount, user.key(), auction.key());
 
     // refund previous highest bidder
-    if auction.highest_bidder != Pubkey::default() {
+    if auction.winning_user != Pubkey::default() {
         let refund = system_instruction::transfer(
             &auction.key(),
-            &auction.highest_bidder,
-            auction.highest_bid + deposit(auction.highest_bid),
+            &auction.winning_user,
+            auction.winning_bid + deposit(auction.winning_bid),
         );
         solana_program::program::invoke(
             &refund,
@@ -227,10 +236,11 @@ pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
                 ctx.accounts.system_program.to_account_info(),
             ]
         )?;
-        msg!("refunded {} lamports to {}", auction.highest_bid, auction.highest_bidder);
+        msg!("refunded {} lamports to {}", auction.winning_bid, auction.winning_bid);
     }
-    auction.highest_bid = amount;
-    auction.highest_bidder = user.key();
+    auction.winning_bid = amount;
+    auction.winning_user = user.key();
+    auction.winning_advertiser = advertiser.key();
     advertiser.num_bids += 1;
     Ok(())
 }

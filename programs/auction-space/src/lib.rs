@@ -12,6 +12,9 @@ use auction::*;
 mod auction_backout;
 use auction_backout::*;
 
+mod utils;
+use utils::*;
+
 declare_id!("APkuWosZy33sLc5mbsPfWzi3VRbC9RTAqyZbspkECd5j");
 
 const MAX_STRING_LENGTH: usize = 32;

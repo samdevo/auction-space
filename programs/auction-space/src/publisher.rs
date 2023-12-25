@@ -19,6 +19,9 @@ pub struct Publisher {
     pub authority: Pubkey,
     pub num_auctions: u64,
     pub num_successful_auctions: u64,
+    pub ad_url: String,
+    pub publisher_backouts: u64,
+    pub advertiser_backouts: u64,
     pub bump: u8,
 }
 
@@ -37,3 +40,5 @@ pub struct NewPublisher<'info> {
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>
 }
+
+
