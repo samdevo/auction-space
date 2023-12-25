@@ -73,8 +73,8 @@ describe("auction-methods", () => {
     const advertiserWalletBalanceAfter = await program.provider.connection.getBalance(advertiserWallet.publicKey);
     // console.log("advertiserWalletBalanceAfter", advertiserWalletBalanceAfter)
     expect(advertiserWalletBalanceAfter).eq(advertiserWalletBalanceBefore - 95000 * 21/20);
-    expect(auctionWithBid.highestBid.toNumber()).eq(95000);
-    expect(auctionWithBid.highestBidder.toString()).eq(advertiserWallet.publicKey.toString());
+    expect(auctionWithBid.winningBid.toNumber()).eq(95000);
+    expect(auctionWithBid.winningUser.toString()).eq(advertiserWallet.publicKey.toString());
 
     const [newAdvertiserWallet, newAdvertiserPDA] = await newAdvertiser();
     // bid below previous high bid, so should fail
@@ -96,8 +96,8 @@ describe("auction-methods", () => {
     const auctionWithBid2 = await program.account.auction.fetch(auctionPDA);
     // console.log("auctionWithBid2", auctionWithBid2);
     // console.log("newHighestBid", auctionWithBid2.highestBid.toString());
-    expect(auctionWithBid2.highestBid.toNumber()).eq(95000);
-    expect(auctionWithBid2.highestBidder.toString()).eq(advertiserWallet.publicKey.toString());
+    expect(auctionWithBid2.winningBid.toNumber()).eq(95000);
+    expect(auctionWithBid2.winningUser.toString()).eq(advertiserWallet.publicKey.toString());
 
 
 

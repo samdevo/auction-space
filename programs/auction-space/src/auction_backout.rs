@@ -127,6 +127,7 @@ pub struct PublisherBackout<'info> {
     )]
     pub advertiser: Account<'info, Advertiser>,
     #[account(mut)]
+    /// CHECK: this is not dangerous because we verify that it is the correct user in the auction struct
     pub advertiser_user: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
 }
@@ -155,6 +156,7 @@ pub struct AdvertiserBackout<'info> {
     )]
     pub publisher: Account<'info, Publisher>,
     #[account(mut)]
+    /// CHECK: this is not dangerous because we verify that it is the correct user in the auction struct
     pub publisher_user: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
 }
