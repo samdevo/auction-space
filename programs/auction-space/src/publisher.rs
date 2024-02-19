@@ -4,12 +4,10 @@ use std::mem::size_of;
 
 pub fn new_publisher(ctx: Context<NewPublisher>) -> Result<()> {
     msg!("new publisher");
-    // panic!("new publisher panic");
     let publisher = &mut ctx.accounts.publisher;
     publisher.authority = ctx.accounts.user.key();
     publisher.num_auctions = 0;
     publisher.num_successful_auctions = 0;
-    // create an empty list of strings
     publisher.bump = ctx.bumps.publisher;
     Ok(())
 }
@@ -19,7 +17,6 @@ pub struct Publisher {
     pub authority: Pubkey,
     pub num_auctions: u64,
     pub num_successful_auctions: u64,
-    pub ad_url: String,
     pub publisher_backouts: u64,
     pub advertiser_backouts: u64,
     pub bump: u8,

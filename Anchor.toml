@@ -1,11 +1,11 @@
 [toolchain]
 
 [features]
-seeds = false
+seeds = true
 skip-lint = false
 
 [programs.localnet]
-auction_space = "APkuWosZy33sLc5mbsPfWzi3VRbC9RTAqyZbspkECd5j"
+auction_space = "BspYAZAKNrUgmQ961MqjQ6iqNpTq8fzQQAN5GCREarhf"
 
 [registry]
 url = "https://api.apr.dev"
@@ -16,3 +16,6 @@ wallet = "/Users/devo/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test]
+startup_wait = 100000

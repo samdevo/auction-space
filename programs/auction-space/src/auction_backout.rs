@@ -67,7 +67,6 @@ pub fn advertiser_backout(ctx: Context<AdvertiserBackout>) -> Result<()> {
         cur_time
     );
     Ok(())
-
 }
 
 fn payout<'info>(
@@ -93,14 +92,24 @@ fn payout<'info>(
         auction.to_account_info().clone(),
         publisher_user.to_account_info().clone(),
         system_program.to_account_info().clone(),
-        publisher_payout
+        publisher_payout,
+        &[
+            b"auction".as_ref(), 
+            auction.publisher_user.key().as_ref(), 
+            &auction.id.to_le_bytes()
+        ]
     );
 
     let _ = transfer_pda_to_user(
         auction.to_account_info().clone(),
         advertiser_user.to_account_info().clone(),
         system_program.to_account_info().clone(),
-        advertiser_payout
+        advertiser_payout,
+        &[
+            b"auction".as_ref(), 
+            auction.publisher_user.key().as_ref(), 
+            &auction.id.to_le_bytes()
+        ]
     );
 }
 

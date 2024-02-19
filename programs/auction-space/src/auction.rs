@@ -5,6 +5,10 @@ use anchor_lang::{prelude::*, solana_program};
 use crate::publisher::*;
 use crate::advertiser::Advertiser;
 use solana_program::system_instruction;
+use crate::utils::{transfer_pda_to_user, transfer_user_to_pda};
+// get auction struct from ./structs/auction.rs - NOT ITS OWN CRATE
+use crate::structs::auction::Auction;
+// use spl_token::token::TokenAccount as TokenAccount;
 
 
 // float deposit
@@ -41,7 +45,7 @@ pub struct CreateAuction<'info> {
     #[account(
         init, 
         payer = authority, 
-        space = 32 + size_of::<Auction>(),
+        space = 128 + size_of::<Auction>(),
         seeds = [
             b"auction".as_ref(), 
             authority.key().as_ref(), 
@@ -60,37 +64,6 @@ pub struct CreateAuction<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
-}
-
-
-#[account]
-pub struct Auction {
-    // title of the auction
-    pub title: String,
-    // publisher struct and the user that owns the publisher
-    pub publisher: Pubkey, // Publi
-    pub publisher_user: Pubkey, // User
-    // advertiser struct and the user that owns the advertiser
-    pub winning_advertiser: Pubkey, // Advertiser
-    pub winning_user: Pubkey, // User
-    pub winning_bid: u64,
-    // auction start and end time, in Unix seconds
-    pub start_time: u64,
-    pub end_time: u64,
-    // auction EFFECT start and end time, in Unix seconds
-    pub effect_start_time: u64,
-    pub effect_end_time: u64,
-    // is the auction (bidding phase) active
-    pub active: bool,
-    // is the effect phase completed
-    pub completed: bool,
-    // was the auction aborted
-    pub aborted: bool,
-    // who aborted the auction (Publisher or Advertiser)
-    pub aborted_by_publisher: bool,
-    pub aborted_at: u64,
-    pub id: u64,
-    bump: u8,
 }
 
 pub fn activate_auction(ctx: Context<ActivateAuction>, auction_end: u64, effect_start: u64, effect_end: u64) -> Result<()> {
@@ -190,9 +163,11 @@ pub struct UploadAd<'info> {
 }
 
 pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
+    msg!("BIDDING");
     let auction = &mut ctx.accounts.auction;
-    let advertiser = &mut ctx.accounts.advertiser;
-    let user = &ctx.accounts.user;
+    // let advertiser = &mut ctx.accounts.advertiser;
+    let cur_high_bid = &ctx.accounts.cur_high_bid;
+    let user = &ctx.accounts.bidder;
     check_status(auction);
     // TODO if winner, increase auctions won
     if amount <= auction.winning_bid {
@@ -203,56 +178,71 @@ pub fn bid(ctx: Context<Bid>, amount: u64) -> Result<()> {
     }
     // 5% deposit;
 
-    // transfer amount from user to auction in case they win
-    let transfer = system_instruction::transfer(
-        &user.key(),
-        &auction.key(),
-        amount + deposit(amount),
+    let _ = transfer_user_to_pda(
+        user.to_account_info(), 
+        auction.to_account_info(), 
+        ctx.accounts.system_program.to_account_info(), 
+        amount + deposit(amount)
     );
-    msg!("transferring {} lamports from {} to {}", amount, user.key(), auction.key());
-    solana_program::program::invoke(
-        &transfer,
-        &[
-            user.to_account_info().clone(),
-            auction.to_account_info().clone(),
-            ctx.accounts.system_program.to_account_info().clone(),
-        ],
-        // &[&[&user.key().to_bytes()]],
-    )?;
+
+    // transfer amount from user to auction in case they win
+    // let transfer = system_instruction::transfer(
+    //     &user.key(),
+    //     &auction.key(),
+    //     amount + deposit(amount),
+    // );
+    // msg!("transferring {} lamports from {} to {}", amount, user.key(), auction.key());
+    // solana_program::program::invoke(
+    //     &transfer,
+    //     &[
+    //         user.to_account_info().clone(),
+    //         auction.to_account_info().clone(),
+    //         ctx.accounts.system_program.to_account_info().clone(),
+    //     ],
+    // )?;
 
     msg!("bid successful. transferred {} lamports from {} to {}", amount, user.key(), auction.key());
 
     // refund previous highest bidder
     if auction.winning_user != Pubkey::default() {
-        let refund = system_instruction::transfer(
-            &auction.key(),
-            &auction.winning_user,
+        msg!("refunding previous highest bidder");
+        let _ = transfer_pda_to_user(
+            auction.to_account_info().clone(),
+            cur_high_bid.clone(),
+            ctx.accounts.system_program.to_account_info().clone(),
             auction.winning_bid + deposit(auction.winning_bid),
-        );
-        solana_program::program::invoke(
-            &refund,
             &[
-                auction.to_account_info(),
-                ctx.accounts.system_program.to_account_info(),
-            ]
-        )?;
-        msg!("refunded {} lamports to {}", auction.winning_bid, auction.winning_bid);
+                b"auction".as_ref(), 
+                auction.publisher_user.key().as_ref(), 
+                &auction.id.to_le_bytes()
+            ],
+        );
     }
     auction.winning_bid = amount;
     auction.winning_user = user.key();
-    auction.winning_advertiser = advertiser.key();
-    advertiser.num_bids += 1;
+    // auction.winning_advertiser = advertiser.key();
+    // advertiser.num_bids += 1;
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct Bid<'info> {
-    #[account(mut)]
+    #[account(
+        seeds = [b"auction".as_ref(), auction.publisher_user.key().as_ref(), &auction.id.to_le_bytes()],
+        bump,
+        mut
+    )]
     pub auction: Account<'info, Auction>,
+    // #[account(mut)]
+    // pub advertiser: Account<'info, Advertiser>,
+    // account of the highest bidder, who we wish to refund
+    #[account(
+        constraint = cur_high_bid.key() == auction.winning_user,
+    )]
+    /// CHECK: this is not dangerous because we verify that it is the correct user in the auction struct
+    pub cur_high_bid: AccountInfo<'info>,
     #[account(mut)]
-    pub advertiser: Account<'info, Advertiser>,
-    #[account(mut)]
-    pub user: Signer<'info>,
+    pub bidder: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
