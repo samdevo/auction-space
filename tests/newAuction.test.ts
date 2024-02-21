@@ -13,7 +13,7 @@ anchor.setProvider(anchor.AnchorProvider.env());
 const BN = anchor.BN;
 const program = anchor.workspace.AuctionSpace as Program<AuctionSpace>;
 
-it("newAuction2", async () => {
+it("newAuction", async () => {
     const advertisers = await getAdvertisers(1);
     const publishers = await getPublishers(1);
     const [advertiserWallet, advertiserPDA] = advertisers[0];

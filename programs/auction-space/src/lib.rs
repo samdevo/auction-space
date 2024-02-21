@@ -48,20 +48,16 @@ pub mod auction_space {
     //     auction::upload_ad(ctx, url)
     // }
 
-    pub fn bid(ctx: Context<Bid>, bid_amount: u64) -> Result<()> {
-        instructions::handle_bid(ctx, bid_amount)
+    pub fn bid(ctx: Context<Bid>, bid_amount: u64, ad_url: String) -> Result<()> {
+        instructions::handle_bid(ctx, bid_amount, ad_url)
     }
 
-    // pub fn publisher_backout(ctx: Context<PublisherBackout>) -> Result<()> {
-    //     auction_backout::publisher_backout(ctx)
-    // }
+    pub fn pub_backout(ctx: Context<PubBackout>) -> Result<()> {
+        instructions::handle_pub_backout(ctx)
+    }
 
-    // pub fn advertiser_backout(ctx: Context<AdvertiserBackout>) -> Result<()> {
-    //     auction_backout::advertiser_backout(ctx)
-    // }
-
-    // pub fn transfer_to_from(ctx: Context<TestTransfer>) -> Result<()> {
-    //     Ok(())
-    // }
+    pub fn adv_backout(ctx: Context<AdvBackout>) -> Result<()> {
+        instructions::handle_adv_backout(ctx)
+    }
 
 }

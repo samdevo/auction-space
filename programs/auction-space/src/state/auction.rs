@@ -11,6 +11,7 @@ pub struct Auction {
     // advertiser struct and the user that owns the advertiser
     pub cur_winner_wallet: Pubkey, // Advertiser
     pub cur_winner_bid: u64,
+    pub cur_winner_ad_url: String,
     // auction start and end time, in Unix seconds
     pub start_time: u64,
     pub end_time: u64,

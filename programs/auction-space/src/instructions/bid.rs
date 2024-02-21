@@ -2,6 +2,7 @@ use anchor_lang::{prelude::*, solana_program};
 use solana_program::system_instruction;
 use crate::state::*;
 use crate::errors::*;
+use crate::MAX_STRING_LENGTH;
 
 #[derive(Accounts)]
 pub struct Bid<'info> {
@@ -21,7 +22,8 @@ pub struct Bid<'info> {
 
 pub fn handle_bid(
     ctx: Context<Bid>,
-    bid_amount: u64
+    bid_amount: u64,
+    ad_url: String
 ) -> Result<()> {
     // let clock = Clock::get().unwrap();
     // let timestamp = clock.unix_timestamp.unsigned_abs();
@@ -39,6 +41,11 @@ pub fn handle_bid(
     if !auction.cur_winner_wallet.eq(prev_bidder_wallet.key) {
         return err!(AuctionErrors::WrongHighBidder);
     }
+
+    if ad_url.len() > MAX_STRING_LENGTH {
+        return err!(AuctionErrors::URLTooLong);
+    }
+    
 
     let clock = Clock::get()?;
     let timestamp = clock.unix_timestamp.unsigned_abs();
@@ -64,6 +71,7 @@ pub fn handle_bid(
 
         auction.cur_winner_wallet = advertiser_wallet.key();
         auction.cur_winner_bid = bid_amount;
+        auction.cur_winner_ad_url = ad_url;
 
         // transfer amount from advertiser to auction
 

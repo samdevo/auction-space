@@ -1,10 +1,25 @@
 use anchor_lang::prelude::*;
 use crate::state::*;
+use crate::instructions::backout_utils::payout;
 
 pub fn handle_pub_backout(
     ctx: Context<PubBackout>
 ) -> Result<()> {
-    Ok(())
+
+    let auction = &mut ctx.accounts.auction;
+    let advertiser_wallet = &ctx.accounts.advertiser_wallet;
+    let advertiser = &mut ctx.accounts.advertiser;
+    let publisher = &mut ctx.accounts.publisher;
+    let publisher_wallet = &mut ctx.accounts.publisher_wallet;
+    
+    payout(
+        auction,
+        &publisher_wallet.to_account_info(),
+        advertiser_wallet,
+        publisher,
+        advertiser,
+        true
+    )
 }
 
 #[derive(Accounts)]
@@ -16,6 +31,7 @@ pub struct PubBackout<'info> {
     )]
     pub auction: Account<'info, Auction>,
     #[account(mut)]
+    /// CHECK: Getting paid that's it
     pub advertiser_wallet: AccountInfo<'info>,
     #[account(
         seeds = [b"advertiser", advertiser_wallet.key().as_ref()],

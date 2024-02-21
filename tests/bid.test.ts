@@ -22,7 +22,6 @@ describe("bid", async () => {
         const [advertiserWallet, advertiserPDA] = advertisers[0];
         const [aWal2, aPDA2] = advertisers[1];
         const timestampNow = Date.now() / 1000;
-        console.log("now: " + timestampNow.toString())
         const auctionPDA = await getAuction(
             publisherWallet,
             "auction1",
@@ -35,7 +34,8 @@ describe("bid", async () => {
         expect(auctionPDA).to.not.be.null;
         
         const tx = await program.methods.bid(
-            new BN(15000)
+            new BN(15000),
+            "google.com"
         ).accounts({
             auction: auctionPDA,
             advertiserWallet: advertiserWallet.publicKey,
@@ -65,7 +65,8 @@ describe("bid", async () => {
         expect(auctionPDA).to.not.be.null;
         
         const tx = await program.methods.bid(
-            new BN(15000)
+            new BN(15000),
+            "google.com"
         ).accounts({
             auction: auctionPDA,
             advertiserWallet: advertiserWallet.publicKey,
@@ -77,7 +78,8 @@ describe("bid", async () => {
         const balanceBefore2 = await program.provider.connection.getBalance(advertiserWallet.publicKey);
 
         const tx2 = await program.methods.bid(
-            new BN(16000)
+            new BN(16000),
+            "yahoo.com"
         ).accounts({
             auction: auctionPDA,
             advertiserWallet: aWal2.publicKey,
@@ -91,7 +93,7 @@ describe("bid", async () => {
 
         expect(balanceBefore2 - balanceAfter2).to.be.at.equal(-15000)
         expect(balanceBefore - balanceAfter).to.be.equal(16000)
-
+        expect(auction.curWinnerAdUrl).to.be.equal("yahoo.com")
         expect(auction.curWinnerBid.toNumber()).to.be.equal(16000)
         expect(auction.curWinnerWallet.toString()).to.be.equal(aWal2.publicKey.toString())
     })
