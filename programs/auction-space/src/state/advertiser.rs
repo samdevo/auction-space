@@ -17,5 +17,5 @@ pub const ADVERTISER_SIZE: usize =
     8 + // publisher_backouts
     8 + // advertiser_backouts
     1 + // bump
-    8;  // padding
+    32;  // padding
 

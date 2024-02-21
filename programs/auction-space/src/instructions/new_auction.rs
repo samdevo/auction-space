@@ -1,15 +1,16 @@
 use anchor_lang::{prelude::*, solana_program};
 use solana_program::system_instruction;
 use crate::state::*;
+use crate::errors::*;
 
 #[derive(Accounts)]
 pub struct NewAuction<'info> {
     #[account(
         init, 
         payer = publisher_wallet, 
-        space = AUCTION_SIZE,
+        space = AUCTION_SIZE + 128,
         seeds = [
-            b"auction".as_ref(), 
+            b"auction", 
             publisher_wallet.key().as_ref(), 
             &publisher.num_auctions.to_le_bytes()
         ],
@@ -41,6 +42,8 @@ pub fn handle_new_auction(
     let publisher = &mut ctx.accounts.publisher;
     let publisher_wallet = &ctx.accounts.publisher_wallet;
 
+    auction.cur_winner_wallet = publisher_wallet.key();
+
     if title.len() > crate::MAX_STRING_LENGTH {
         return err!(AuctionErrors::TitleTooLong);
     }
@@ -48,7 +51,7 @@ pub fn handle_new_auction(
     let clock = Clock::get()?;
     let timestamp = clock.unix_timestamp.unsigned_abs();
     if timestamp > auction_end {
-        return err!(AuctionErrors::AuctionEndsBeforeStart);
+        return err!(AuctionErrors::AuctionAlreadyEnded);
     }
     if auction_end > effect_start {
         return err!(AuctionErrors::AuctionEffectBeforeEnd);
@@ -93,19 +96,4 @@ pub fn handle_new_auction(
     // send an escrow to the auction account
 
     Ok(())
-}
-
-#[error_code]
-pub enum AuctionErrors {
-    TitleTooLong,
-    AuctionAlreadyActive,
-    AuctionNotActive,
-    NotHighestBid,
-    AuctionEndsBeforeStart,
-    AuctionEffectBeforeEnd,
-    AuctionEffectEndBeforeStart,
-    AuctionNotCompleted,
-    AuctionAborted,
-    AuctionAlreadyAborted,
-    AuctionAlreadyEnded,
 }

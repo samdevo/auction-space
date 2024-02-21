@@ -2,11 +2,13 @@ use anchor_lang::prelude::*;
 
 pub mod instructions;
 pub mod state;
+pub mod errors;
 
 pub use instructions::*;
 pub use state::*;
+pub use errors::*;
 
-declare_id!("BspYAZAKNrUgmQ961MqjQ6iqNpTq8fzQQAN5GCREarhf");
+declare_id!("41vpQQjubJn25HVHTLTt6YZViRM9hefnd9DJ1PXvt5NE");
 
 const MAX_STRING_LENGTH: usize = 32;
 const PUBLISHER_DEPOSIT: u64 = 10000;
@@ -46,9 +48,9 @@ pub mod auction_space {
     //     auction::upload_ad(ctx, url)
     // }
 
-    // pub fn bid(ctx: Context<Bid>, bid_amount: u64) -> Result<()> {
-    //     auction::bid(ctx, bid_amount)
-    // }
+    pub fn bid(ctx: Context<Bid>, bid_amount: u64) -> Result<()> {
+        instructions::handle_bid(ctx, bid_amount)
+    }
 
     // pub fn publisher_backout(ctx: Context<PublisherBackout>) -> Result<()> {
     //     auction_backout::publisher_backout(ctx)

@@ -5,7 +5,7 @@ seeds = true
 skip-lint = false
 
 [programs.localnet]
-auction_space = "BspYAZAKNrUgmQ961MqjQ6iqNpTq8fzQQAN5GCREarhf"
+auction_space = "41vpQQjubJn25HVHTLTt6YZViRM9hefnd9DJ1PXvt5NE"
 
 [registry]
 url = "https://api.apr.dev"

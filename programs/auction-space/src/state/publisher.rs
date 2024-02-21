@@ -15,4 +15,4 @@ pub const PUBLISHER_SIZE: usize =
     8 + // num_backed_out_publisher
     8 + // num_backed_out_advertiser
     1 + // bump
-    8;  // padding
+    32;  // padding

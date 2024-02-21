@@ -1,7 +1,9 @@
 {
     "scripts": {
         "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-        "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+        "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+        "test": "anchor test --skip-local-validator",
+        "test-nodeploy": "anchor test --skip-local-validator --skip-deploy"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.29.0"

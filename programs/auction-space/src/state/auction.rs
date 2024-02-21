@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use std::mem::size_of;
 
 #[account]
 pub struct Auction {
@@ -11,7 +10,6 @@ pub struct Auction {
     pub publisher_wallet: Pubkey, // User
     // advertiser struct and the user that owns the advertiser
     pub cur_winner_wallet: Pubkey, // Advertiser
-    pub cur_winner: Pubkey, // User
     pub cur_winner_bid: u64,
     // auction start and end time, in Unix seconds
     pub start_time: u64,
@@ -61,4 +59,4 @@ pub const AUCTION_SIZE: usize =
     8 + // id
 
     1 + //bump
-    32;  // padding]
+    128;  // padding]
