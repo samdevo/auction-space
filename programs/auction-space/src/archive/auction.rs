@@ -47,7 +47,7 @@ pub struct CreateAuction<'info> {
         payer = authority, 
         space = 128 + size_of::<Auction>(),
         seeds = [
-            b"auction".as_ref(), 
+            b"auction", 
             authority.key().as_ref(), 
             &publisher.num_auctions.to_le_bytes()
         ],

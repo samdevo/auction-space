@@ -85,26 +85,6 @@ pub fn handle_bid(
         if prev_high_bid > 0 {
             **auction.to_account_info().try_borrow_mut_lamports()? -= prev_high_bid;
             **prev_bidder_wallet.to_account_info().try_borrow_mut_lamports()? += prev_high_bid;
-            // refund previous highest bidder
-            // let transfer = system_instruction::transfer(
-            //     &auction.key(),
-            //     &prev_bidder_wallet.key(),
-            //     prev_high_bid,
-            // );
-            // let auction_seeds = [
-            //     b"auction",
-            //     auction.publisher_wallet.as_ref(),
-            //     &auction.id.to_le_bytes(),
-            // ];
-            // solana_program::program::invoke_signed(
-            //     &transfer,
-            //     &[
-            //         auction.to_account_info(),
-            //         prev_bidder_wallet.to_account_info(),
-            //         ctx.accounts.system_program.to_account_info(),
-            //     ],
-            //     &[&auction_seeds],
-            // )?;
         }
     }
     Ok(())
