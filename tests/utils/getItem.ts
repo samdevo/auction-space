@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program, web3 } from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { AuctionSpace } from "../../target/types/auction_space";
 import getWallets from "./getWallets";
 import { PublicKey } from "@solana/web3.js";
@@ -10,26 +10,18 @@ anchor.setProvider(anchor.AnchorProvider.env());
 
 const program = anchor.workspace.AuctionSpace as Program<AuctionSpace>;
 
-export default async function getAuction(
+export default async function getItem(
     wallet: anchor.web3.Keypair,
-    item: PublicKey,
-    minBid: number,
-    startTime: number,
-    endTime: number,
-    effectStart: number,
-    effectEnd: number
+    title: string,
+    url: string,
 ): Promise<anchor.Address> {
     const [publisherPDA, _] = PublicKey.findProgramAddressSync(
         [Buffer.from("publisher"), wallet.publicKey.toBuffer()],
         program.programId
     )
-    return program.methods.newAuction(
-        item,
-        new anchor.BN(minBid),
-        new anchor.BN(startTime),
-        new anchor.BN(endTime),
-        new anchor.BN(effectStart),
-        new anchor.BN(effectEnd)
+    return program.methods.newItem(
+        title,
+        url
     ).accounts({
         publisherWallet: wallet.publicKey,
         publisher: publisherPDA
@@ -38,11 +30,12 @@ export default async function getAuction(
     .then(() => program.account.publisher.fetch(publisherPDA))
     .then((publisher) => {
         const seedBuffer = Buffer.alloc(8);
-        seedBuffer.writeUInt32LE(publisher.numAuctions.toNumber() - 1, 0);
-        const [auctionPDA, _] = PublicKey.findProgramAddressSync(
-            [Buffer.from("auction"), wallet.publicKey.toBuffer(), seedBuffer],
+        seedBuffer.writeUInt32LE(publisher.numItems.toNumber() - 1, 0);
+        const [itemPDA, _] = PublicKey.findProgramAddressSync(
+            [Buffer.from("item"), wallet.publicKey.toBuffer(), seedBuffer],
             program.programId
         );
-        return auctionPDA;
+        // return program.account.item.fetch(itemPDA);
+        return itemPDA;
     })
 }

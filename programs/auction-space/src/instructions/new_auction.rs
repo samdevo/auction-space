@@ -31,7 +31,7 @@ pub struct NewAuction<'info> {
 
 pub fn handle_new_auction(
     ctx: Context<NewAuction>,
-    title: String,
+    item: Pubkey,
     min_bid: u64,
     auction_start: u64,
     auction_end: u64,
@@ -44,9 +44,9 @@ pub fn handle_new_auction(
 
     auction.cur_winner_wallet = publisher_wallet.key();
 
-    if title.len() > crate::MAX_STRING_LENGTH {
-        return err!(AuctionErrors::TitleTooLong);
-    }
+    // if title.len() > crate::MAX_STRING_LENGTH {
+    //     return err!(AuctionErrors::TitleTooLong);
+    // }
 
     let clock = Clock::get()?;
     let timestamp = clock.unix_timestamp.unsigned_abs();
@@ -78,7 +78,7 @@ pub fn handle_new_auction(
     )?;
 
     // set auction fields
-    auction.title = title;
+    auction.item = item;
     auction.id = publisher.num_auctions;
     auction.bump = ctx.bumps.auction;
     auction.min_bid = min_bid;

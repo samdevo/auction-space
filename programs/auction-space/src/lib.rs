@@ -32,10 +32,10 @@ pub mod auction_space {
     //     )
     // }
 
-    pub fn new_auction(ctx: Context<NewAuction>, title: String, min_bid: u64, auction_start: u64, auction_end: u64, effect_start: u64, effect_end: u64) -> Result<()> {
+    pub fn new_auction(ctx: Context<NewAuction>, item: Pubkey, min_bid: u64, auction_start: u64, auction_end: u64, effect_start: u64, effect_end: u64) -> Result<()> {
         instructions::handle_new_auction(
             ctx,
-            title,
+            item,
             min_bid, 
             auction_start, 
             auction_end, 
@@ -47,6 +47,10 @@ pub mod auction_space {
     // pub fn upload_ad(ctx: Context<UploadAd>, url: String) -> Result<()> {
     //     auction::upload_ad(ctx, url)
     // }
+
+    pub fn new_item(ctx: Context<NewItem>, title: String, url: String) -> Result<()> {
+        instructions::handle_new_item(ctx, title, url)
+    }
 
     pub fn bid(ctx: Context<Bid>, bid_amount: u64, ad_url: String) -> Result<()> {
         instructions::handle_bid(ctx, bid_amount, ad_url)

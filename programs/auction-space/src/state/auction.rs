@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 #[account]
 pub struct Auction {
     // title of the auction
-    pub title: String,
+    pub item: Pubkey,
     pub min_bid: u64,
     // publisher struct and the user that owns the publisher
     pub publisher: Pubkey, // Publi
@@ -35,7 +35,7 @@ pub struct Auction {
 }
 
 pub const AUCTION_SIZE: usize = 
-    32 + // title
+    8 + // item
     8 + // min_bid
     8 + // publisher
     8 + // publisher_wallet

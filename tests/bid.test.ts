@@ -8,6 +8,7 @@ import requestAirdrops from "./utils/requestAirdrops";
 import { PublicKey } from "@solana/web3.js";
 import { expect } from "chai";
 import getAuction from "./utils/getAuction";
+import getItem from "./utils/getItem";
 
 anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -22,9 +23,10 @@ describe("bid", async () => {
         const [advertiserWallet, advertiserPDA] = advertisers[0];
         const [aWal2, aPDA2] = advertisers[1];
         const timestampNow = Date.now() / 1000;
+        const item = await getItem(publisherWallet, "item1", "google.com");
         const auctionPDA = await getAuction(
             publisherWallet,
-            "auction1",
+            item as PublicKey,
             10000,
             timestampNow - 100,
             timestampNow + 1000,
@@ -53,9 +55,10 @@ describe("bid", async () => {
         const [advertiserWallet, advertiserPDA] = advertisers[0];
         const [aWal2, aPDA2] = advertisers[1];
         const timestampNow = Date.now() / 1000;
+        const item = await getItem(publisherWallet, "item1", "google.com");
         const auctionPDA = await getAuction(
             publisherWallet,
-            "auction1",
+            item as PublicKey,
             10000,
             timestampNow - 100,
             timestampNow + 1000,

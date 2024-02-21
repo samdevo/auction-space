@@ -9,3 +9,4 @@ test-ledger
 yarn.lock
 .vscode/*
 py-client
+venv
